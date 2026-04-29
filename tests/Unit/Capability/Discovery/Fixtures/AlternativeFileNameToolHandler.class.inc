@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Mcp\Server;
+namespace Mcp\Tests\Unit\Capability\Discovery\Fixtures;
 
-use Psr\Clock\ClockInterface;
+use Mcp\Capability\Attribute\McpTool;
 
-class NativeClock implements ClockInterface
+class AlternativeFileNameToolHandler
 {
-    public function now(): \DateTimeImmutable
+    #[McpTool(name: 'inc_file_name_tool')]
+    public function run(): void
     {
-        return new \DateTimeImmutable();
     }
 }

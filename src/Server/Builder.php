@@ -99,6 +99,7 @@ final class Builder
      * @var array{
      *     handler: Handler,
      *     name: ?string,
+     *     title: ?string,
      *     description: ?string,
      *     annotations: ?ToolAnnotations,
      *     icons: ?Icon[],
@@ -158,6 +159,11 @@ final class Builder
      * @var array|string[]
      */
     private array $discoveryExcludeDirs = [];
+
+    /**
+     * @var string[]|null
+     */
+    private ?array $discoveryNamePatterns = null;
 
     private ?ServerCapabilities $serverCapabilities = null;
 
@@ -347,17 +353,20 @@ final class Builder
     /**
      * @param string[] $scanDirs
      * @param string[] $excludeDirs
+     * @param string[] $namePatterns
      */
     public function setDiscovery(
         string $basePath,
         array $scanDirs = ['.', 'src'],
         array $excludeDirs = [],
         ?CacheInterface $cache = null,
+        array $namePatterns = DiscovererInterface::DEFAULT_NAME_PATERNS,
     ): self {
         $this->discoveryBasePath = $basePath;
         $this->discoveryScanDirs = $scanDirs;
         $this->discoveryExcludeDirs = $excludeDirs;
         $this->discoveryCache = $cache;
+        $this->discoveryNamePatterns = $namePatterns;
 
         return $this;
     }
@@ -373,6 +382,7 @@ final class Builder
      * Manually registers a tool handler.
      *
      * @param Handler                   $handler
+     * @param ?string                   $title        Optional human-readable title for display in UI
      * @param array<string, mixed>|null $inputSchema
      * @param ?Icon[]                   $icons
      * @param array<string, mixed>|null $meta
@@ -381,6 +391,7 @@ final class Builder
     public function addTool(
         callable|array|string $handler,
         ?string $name = null,
+        ?string $title = null,
         ?string $description = null,
         ?ToolAnnotations $annotations = null,
         ?array $inputSchema = null,
@@ -391,6 +402,7 @@ final class Builder
         $this->tools[] = compact(
             'handler',
             'name',
+            'title',
             'description',
             'annotations',
             'inputSchema',
@@ -527,7 +539,7 @@ final class Builder
         if (null !== $this->discoveryBasePath) {
             if (null !== $this->discoverer || class_exists(Finder::class)) {
                 $discoverer = $this->discoverer ?? $this->createDiscoverer($logger);
-                $loaders[] = new DiscoveryLoader($this->discoveryBasePath, $this->discoveryScanDirs, $this->discoveryExcludeDirs, $discoverer);
+                $loaders[] = new DiscoveryLoader($this->discoveryBasePath, $this->discoveryScanDirs, $this->discoveryExcludeDirs, $discoverer, $this->discoveryNamePatterns);
             } else {
                 $logger->warning('File-based discovery requires symfony/finder. Skipping automatic discovery. Run: composer require symfony/finder');
             }
